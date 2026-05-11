@@ -8,7 +8,9 @@ import {
   ClipboardList,
   Plus,
   Search,
+  Shield,
   Trash2,
+  Trophy,
 } from 'lucide-react'
 import './App.css'
 
@@ -42,6 +44,18 @@ const priorityLabels = {
   medium: '中',
   low: '低',
 }
+
+const completionRanks = [
+  { min: 0, name: '坚韧黑铁', tier: 'Iron IV', next: 1, className: 'iron' },
+  { min: 1, name: '英勇黄铜', tier: 'Bronze IV', next: 3, className: 'bronze' },
+  { min: 3, name: '不屈白银', tier: 'Silver IV', next: 6, className: 'silver' },
+  { min: 6, name: '荣耀黄金', tier: 'Gold IV', next: 10, className: 'gold' },
+  { min: 10, name: '华贵铂金', tier: 'Platinum IV', next: 15, className: 'platinum' },
+  { min: 15, name: '璀璨钻石', tier: 'Diamond IV', next: 21, className: 'diamond' },
+  { min: 21, name: '超凡大师', tier: 'Master', next: 28, className: 'master' },
+  { min: 28, name: '傲世宗师', tier: 'Grandmaster', next: 36, className: 'grandmaster' },
+  { min: 36, name: '最强王者', tier: 'Challenger', next: null, className: 'challenger' },
+]
 
 function getLocalDateTime(hoursFromNow = 1) {
   const date = new Date(Date.now() + hoursFromNow * 60 * 60 * 1000)
@@ -84,6 +98,12 @@ function getTaskState(task) {
   if (dueDate < now) return 'overdue'
   if (isSameDay) return 'today'
   return 'upcoming'
+}
+
+function getCompletionRank(completedCount) {
+  return completionRanks.reduce((currentRank, rank) => {
+    return completedCount >= rank.min ? rank : currentRank
+  }, completionRanks[0])
 }
 
 function App() {
@@ -160,6 +180,8 @@ function App() {
       })
   }, [filter, query, tasks])
 
+  const completionRank = useMemo(() => getCompletionRank(stats.done), [stats.done])
+
   function handleSubmit(event) {
     event.preventDefault()
 
@@ -234,6 +256,8 @@ function App() {
         <StatCard label="逾期" value={stats.overdue} icon={<AlarmClock size={20} />} tone="danger" />
         <StatCard label="完成" value={stats.done} icon={<Check size={20} />} tone="success" />
       </section>
+
+      <CompletionRankCard completedCount={stats.done} rank={completionRank} />
 
       <div className="workspace">
         <section className="task-form-panel" aria-label="新增待办">
@@ -360,6 +384,40 @@ function StatCard({ label, value, icon, tone = 'default' }) {
         <strong>{value}</strong>
       </div>
     </article>
+  )
+}
+
+function CompletionRankCard({ completedCount, rank }) {
+  const nextTarget = rank.next
+  const progress =
+    nextTarget === null
+      ? 100
+      : Math.min(100, Math.round(((completedCount - rank.min) / (nextTarget - rank.min)) * 100))
+  const remaining = nextTarget === null ? 0 : nextTarget - completedCount
+
+  return (
+    <section className={`rank-card ${rank.className}`} aria-label="任务完成等级">
+      <div className="rank-emblem" aria-hidden="true">
+        <Shield size={42} />
+        <Trophy size={20} />
+      </div>
+
+      <div className="rank-copy">
+        <span>任务完成等级</span>
+        <h2>{rank.name}</h2>
+        <p>{rank.tier}</p>
+      </div>
+
+      <div className="rank-progress" aria-label="等级进度">
+        <div className="rank-progress-label">
+          <span>已完成 {completedCount} 个</span>
+          <strong>{nextTarget === null ? '已登顶' : `还差 ${remaining} 个晋级`}</strong>
+        </div>
+        <div className="rank-progress-track">
+          <div style={{ width: `${progress}%` }} />
+        </div>
+      </div>
+    </section>
   )
 }
 
