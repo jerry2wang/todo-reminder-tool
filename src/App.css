@@ -201,21 +201,19 @@ button:disabled {
 }
 
 .rank-emblem {
-  position: relative;
-  display: grid;
+  display: flex;
   width: 66px;
   height: 66px;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  border-radius: 8px;
-  color: #fff4c8;
-  background: rgba(255, 255, 255, 0.12);
+  align-items: center;
+  justify-content: center;
 }
 
-.rank-emblem svg:last-child {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
+.rank-emblem img {
+  display: block;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
 }
 
 .rank-copy {

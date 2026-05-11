@@ -8,10 +8,9 @@ import {
   ClipboardList,
   Plus,
   Search,
-  Shield,
   Trash2,
-  Trophy,
 } from 'lucide-react'
+import rankEmblem from './assets/task-rank-emblem.png'
 import './App.css'
 
 const STORAGE_KEY = 'todo-reminder-items'
@@ -398,8 +397,7 @@ function CompletionRankCard({ completedCount, rank }) {
   return (
     <section className={`rank-card ${rank.className}`} aria-label="任务完成等级">
       <div className="rank-emblem" aria-hidden="true">
-        <Shield size={42} />
-        <Trophy size={20} />
+        <img src={rankEmblem} alt="" />
       </div>
 
       <div className="rank-copy">
