@@ -356,13 +356,22 @@ button:disabled {
   padding: 0;
 }
 
-.priority-control {
+.priority-control,
+.repeat-control {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
-.priority-control label {
+.priority-control {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.repeat-control {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.priority-control label,
+.repeat-control label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -373,13 +382,15 @@ button:disabled {
   color: #4c5a56;
 }
 
-.priority-control label.selected {
+.priority-control label.selected,
+.repeat-control label.selected {
   border-color: #287a67;
   color: #12372f;
   background: #e5f4ef;
 }
 
-.priority-control input {
+.priority-control input,
+.repeat-control input {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -562,6 +573,30 @@ button:disabled {
   text-align: center;
 }
 
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 22px;
+  padding: 18px 4px 0;
+  border-top: 1px solid rgba(45, 64, 60, 0.16);
+  color: #65736f;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.app-footer div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.app-footer strong {
+  color: #1f6f5e;
+}
+
 @media (max-width: 860px) {
   .app-shell {
     width: min(100% - 24px, 680px);
@@ -587,6 +622,11 @@ button:disabled {
 
   .workspace {
     grid-template-columns: 1fr;
+  }
+
+  .app-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

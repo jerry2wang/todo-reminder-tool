@@ -7,6 +7,7 @@ import {
   Circle,
   ClipboardList,
   Plus,
+  Repeat,
   Search,
   Trash2,
 } from 'lucide-react'
@@ -42,6 +43,13 @@ const priorityLabels = {
   high: '高',
   medium: '中',
   low: '低',
+}
+
+const repeatLabels = {
+  none: '不重复',
+  daily: '每天',
+  weekly: '每周',
+  monthly: '每月',
 }
 
 const completionRanks = [
@@ -86,6 +94,45 @@ function formatDueTime(value) {
   }).format(date)
 }
 
+function toLocalDateTimeValue(date) {
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16)
+}
+
+function advanceDueDate(date, repeat) {
+  const nextDate = new Date(date)
+
+  if (repeat === 'daily') {
+    nextDate.setDate(nextDate.getDate() + 1)
+  }
+
+  if (repeat === 'weekly') {
+    nextDate.setDate(nextDate.getDate() + 7)
+  }
+
+  if (repeat === 'monthly') {
+    nextDate.setMonth(nextDate.getMonth() + 1)
+  }
+
+  return nextDate
+}
+
+function getNextRecurringDueAt(dueAt, repeat) {
+  if (!dueAt || !repeat || repeat === 'none') return null
+
+  let nextDate = new Date(dueAt)
+  const now = Date.now()
+  let guard = 0
+
+  while (nextDate.getTime() <= now && guard < 500) {
+    nextDate = advanceDueDate(nextDate, repeat)
+    guard += 1
+  }
+
+  return toLocalDateTimeValue(nextDate)
+}
+
 function getTaskState(task) {
   if (task.done) return 'done'
   if (!task.dueAt) return 'open'
@@ -117,6 +164,7 @@ function App() {
     note: '',
     dueAt: getLocalDateTime(1),
     priority: 'medium',
+    repeat: 'none',
   })
 
   useEffect(() => {
@@ -140,7 +188,18 @@ function App() {
             })
           }
 
-          return { ...task, reminded: true }
+          const nextDueAt = getNextRecurringDueAt(task.dueAt, task.repeat)
+
+          if (nextDueAt) {
+            return {
+              ...task,
+              dueAt: nextDueAt,
+              reminded: false,
+              lastRemindedAt: new Date().toISOString(),
+            }
+          }
+
+          return { ...task, reminded: true, lastRemindedAt: new Date().toISOString() }
         }),
       )
     }, 15000)
@@ -193,6 +252,7 @@ function App() {
         note: form.note.trim(),
         dueAt: form.dueAt,
         priority: form.priority,
+        repeat: form.repeat,
         done: false,
         reminded: false,
         createdAt: new Date().toISOString(),
@@ -205,6 +265,7 @@ function App() {
       note: '',
       dueAt: getLocalDateTime(1),
       priority: 'medium',
+      repeat: 'none',
     })
   }
 
@@ -295,6 +356,24 @@ function App() {
             </label>
 
             <fieldset>
+              <legend>周期提醒</legend>
+              <div className="repeat-control">
+                {Object.entries(repeatLabels).map(([value, label]) => (
+                  <label key={value} className={form.repeat === value ? 'selected' : ''}>
+                    <input
+                      type="radio"
+                      name="repeat"
+                      value={value}
+                      checked={form.repeat === value}
+                      onChange={(event) => setForm({ ...form, repeat: event.target.value })}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset>
               <legend>优先级</legend>
               <div className="priority-control">
                 {Object.entries(priorityLabels).map(([value, label]) => (
@@ -370,6 +449,14 @@ function App() {
           </div>
         </section>
       </div>
+
+      <footer className="app-footer">
+        <div>
+          <strong>Todo Reminder</strong>
+          <span>任务、提醒和完成等级都会保存在当前浏览器。</span>
+        </div>
+        <span>React + Vite</span>
+      </footer>
     </main>
   )
 }
@@ -439,6 +526,12 @@ function TaskItem({ task, state, onToggle, onDelete }) {
             <CalendarClock size={15} />
             {formatDueTime(task.dueAt)}
           </span>
+          {task.repeat && task.repeat !== 'none' ? (
+            <span>
+              <Repeat size={15} />
+              {repeatLabels[task.repeat]}
+            </span>
+          ) : null}
           {state === 'overdue' ? <strong>已逾期</strong> : null}
           {state === 'today' ? <strong>今天到期</strong> : null}
         </div>
